@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Neon Hangman</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+        radial-gradient(circle at top,#1f1f3a 0%,#0b0b14 40%,#050509 100%);
+    color:white;
+    overflow:hidden;
+}
+
+/* glowing background */
+body::before{
+    content:"";
+    position:absolute;
+    width:700px;
+    height:700px;
+    background:rgba(0,255,255,0.08);
+    filter:blur(120px);
+    border-radius:50%;
+    top:-200px;
+    left:-200px;
+}
+
+body::after{
+    content:"";
+    position:absolute;
+    width:600px;
+    height:600px;
+    background:rgba(255,0,200,0.08);
+    filter:blur(120px);
+    border-radius:50%;
+    bottom:-200px;
+    right:-200px;
+}
+
+.container{
+    position:relative;
+    z-index:1;
+    width:95%;
+    max-width:1000px;
+    padding:30px;
+    border-radius:25px;
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:
+        0 0 40px rgba(0,0,0,0.6),
+        inset 0 0 20px rgba(255,255,255,0.05);
+}
+
+h1{
+    text-align:center;
+    font-size:4rem;
+    margin-bottom:25px;
+    font-weight:700;
+    letter-spacing:4px;
+    background:linear-gradient(90deg,#00f7ff,#ff00d4);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    text-shadow:0 0 25px rgba(0,255,255,0.3);
+}
+
+.screen{
+    display:none;
+}
+
+.active{
+    display:block;
+}
+
+.setup-box{
+    text-align:center;
+}
+
+.setup-box p{
+    font-size:1.2rem;
+    margin-bottom:15px;
+    color:#ccc;
+}
+
+input{
+    width:280px;
+    padding:14px;
+    border:none;
+    outline:none;
+    border-radius:14px;
+    background:#111827;
+    color:white;
+    font-size:1rem;
+    text-align:center;
+    box-shadow:0 0 15px rgba(0,255,255,0.15);
+}
+
+button{
+    border:none;
+    cursor:pointer;
+    transition:0.25s;
+}
+
+.main-btn{
+    margin-top:18px;
+    padding:14px 28px;
+    border-radius:14px;
+    background:linear-gradient(135deg,#00eaff,#8b5cf6);
+    color:white;
+    font-size:1rem;
+    font-weight:600;
+    box-shadow:0 0 20px rgba(0,234,255,0.35);
+}
+
+.main-btn:hover{
+    transform:translateY(-2px) scale(1.03);
+    box-shadow:0 0 30px rgba(0,234,255,0.55);
+}
+
+.game-layout{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+    align-items:center;
+}
+
+.left{
+    display:flex;
+    justify-content:center;
+}
+
+.right{
+    text-align:center;
+}
+
+#wordDisplay{
+    font-size:3rem;
+    letter-spacing:16px;
+    margin-bottom:25px;
+    font-weight:700;
+    color:#fff;
+    text-shadow:0 0 15px rgba(255,255,255,0.3);
+}
+
+#letters{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px;
+}
+
+#letters button{
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    background:#151a2d;
+    color:white;
+    font-size:1rem;
+    font-weight:600;
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+}
+
+#letters button:hover:not(:disabled){
+    background:linear-gradient(135deg,#00eaff,#8b5cf6);
+    transform:translateY(-2px);
+    box-shadow:0 0 18px rgba(0,255,255,0.45);
+}
+
+#letters button:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+}
+
+#status{
+    margin-top:22px;
+    font-size:1.6rem;
+    font-weight:700;
+    min-height:40px;
+}
+
+.win{
+    color:#00ff88;
+    text-shadow:0 0 15px #00ff88;
+}
+
+.lose{
+    color:#ff4d6d;
+    text-shadow:0 0 15px #ff4d6d;
+}
+
+canvas{
+    width:100%;
+    max-width:420px;
+    background:linear-gradient(180deg,#111827,#0b1020);
+    border-radius:20px;
+    border:1px solid rgba(255,255,255,0.1);
+    box-shadow:
+        inset 0 0 25px rgba(255,255,255,0.03),
+        0 0 25px rgba(0,0,0,0.5);
+}
+
+.restart{
+    margin-top:18px;
+}
+
+@media(max-width:850px){
+
+    .game-layout{
+        grid-template-columns:1fr;
+    }
+
+    h1{
+        font-size:2.8rem;
+    }
+
+    #wordDisplay{
+        font-size:2.1rem;
+        letter-spacing:10px;
+    }
+
+    #letters button{
+        width:46px;
+        height:46px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🔥 HANGMAN 🔥</h1>
+
+    <!-- SETUP -->
+    <div id="setup" class="screen active">
+        <div class="setup-box">
+            <p>Enter a secret word</p>
+
+            <input type="password" id="secretWord" placeholder="Type word..." />
+
+            <br>
+
+            <button class="main-btn" onclick="startGame()">
+                Start Game
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div id="game" class="screen">
+
+        <div class="game-layout">
+
+            <div class="left">
+                <canvas id="hangman" width="400" height="500"></canvas>
+            </div>
+
+            <div class="right">
+
+                <div id="wordDisplay"></div>
+
+                <div id="letters"></div>
+
+                <p id="status"></p>
+
+                <button class="main-btn restart" onclick="location.reload()">
+                    Restart
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+let word = "";
+let guessed = [];
+let wrong = 0;
+
+const canvas = document.getElementById("hangman");
+const ctx = canvas.getContext("2d");
+
+function startGame(){
+
+    word = document.getElementById("secretWord").value.toLowerCase().trim();
+
+    if(!word) return;
+
+    document.getElementById("setup").classList.remove("active");
+    document.getElementById("game").classList.add("active");
+
+    guessed = [];
+    wrong = 0;
+
+    createLetters();
+    updateDisplay();
+    draw();
+}
+
+function createLetters(){
+
+    const lettersDiv = document.getElementById("letters");
+    lettersDiv.innerHTML = "";
+
+    for(let i=97;i<=122;i++){
+
+        let btn = document.createElement("button");
+
+        btn.innerText = String.fromCharCode(i);
+
+        btn.onclick = () => guess(btn.innerText,btn);
+
+        lettersDiv.appendChild(btn);
+    }
+}
+
+function guess(letter,btn){
+
+    btn.disabled = true;
+
+    if(word.includes(letter)){
+
+        guessed.push(letter);
+
+    }else{
+
+        wrong++;
+        draw();
+    }
+
+    updateDisplay();
+    check();
+}
+
+function updateDisplay(){
+
+    let display = "";
+
+    for(let c of word){
+
+        display += guessed.includes(c)
+            ? c + " "
+            : "_ ";
+    }
+
+    document.getElementById("wordDisplay").innerText = display;
+}
+
+function check(){
+
+    let win = word
+        .split("")
+        .every(c => guessed.includes(c));
+
+    if(win){
+
+        document.getElementById("status").innerHTML =
+            "🎉 YOU WIN!";
+
+        document.getElementById("status").className =
+            "win";
+
+        disableAll();
+    }
+
+    if(wrong >= 6){
+
+        document.getElementById("status").innerHTML =
+            "💀 YOU LOST! Word: " + word;
+
+        document.getElementById("status").className =
+            "lose";
+
+        disableAll();
+    }
+}
+
+function disableAll(){
+
+    document
+        .querySelectorAll("#letters button")
+        .forEach(b => b.disabled = true);
+}
+
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.strokeStyle = "#00eaff";
+    ctx.lineWidth = 6;
+    ctx.lineCap = "round";
+
+    // BASE
+    ctx.beginPath();
+    ctx.moveTo(80,450);
+    ctx.lineTo(320,450);
+
+    // POLE
+    ctx.moveTo(120,450);
+    ctx.lineTo(120,80);
+
+    // TOP
+    ctx.lineTo(260,80);
+
+    // ROPE
+    ctx.lineTo(260,120);
+
+    ctx.stroke();
+
+    ctx.strokeStyle = "#ffffff";
+
+    // HEAD
+    if(wrong > 0){
+
+        ctx.beginPath();
+        ctx.arc(260,160,40,0,Math.PI*2);
+        ctx.stroke();
+    }
+
+    // BODY
+    if(wrong > 1){
+
+        ctx.beginPath();
+        ctx.moveTo(260,200);
+        ctx.lineTo(260,320);
+        ctx.stroke();
+    }
+
+    // LEFT ARM
+    if(wrong > 2){
+
+        ctx.beginPath();
+        ctx.moveTo(260,240);
+        ctx.lineTo(210,280);
+        ctx.stroke();
+    }
+
+    // RIGHT ARM
+    if(wrong > 3){
+
+        ctx.beginPath();
+        ctx.moveTo(260,240);
+        ctx.lineTo(310,280);
+        ctx.stroke();
+    }
+
+    // LEFT LEG
+    if(wrong > 4){
+
+        ctx.beginPath();
+        ctx.moveTo(260,320);
+        ctx.lineTo(220,400);
+        ctx.stroke();
+    }
+
+    // RIGHT LEG
+    if(wrong > 5){
+
+        ctx.beginPath();
+        ctx.moveTo(260,320);
+        ctx.lineTo(300,400);
+        ctx.stroke();
+    }
+}
+</script>
+
+</body>
+</html>
